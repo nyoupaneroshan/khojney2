@@ -1,4 +1,5 @@
 --- Build Artifacts and Directories ---
+.env
 .next/
 out/
 dist/
@@ -11,6 +12,7 @@ pycache
 
 --- Environment and Configuration Files ---
 IMPORTANT: Keep sensitive data out of source control!
+
 .env
 .env.local
 .env.development.local
