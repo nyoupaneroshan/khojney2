@@ -4,7 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// import { marked } from 'marked';
+import { marked } from 'marked'; // FIXED: Uncommented the import
 import { ChevronDown, X } from 'lucide-react';
 
 interface AiPlanModalProps {
@@ -54,7 +54,6 @@ const AccordionItem = ({ weekContent, index, isOpen, onClick }: { weekContent: s
     </div>
   );
 };
-
 
 export default function AiPlanModal({ markdownContent, onClose, onRegisterClick }: AiPlanModalProps) {
   const [openIndex, setOpenIndex] = useState(0); // Open the first week by default

@@ -3,14 +3,12 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse, type NextRequest } from 'next/server';
-// REMOVED: import { Database } from '@/types/supabase';
 import { subDays } from 'date-fns';
 
 export async function GET(request: NextRequest) {
   // UPDATED: Use cookies() properly for Next.js 15
   const cookieStore = await cookies();
   
-  // REMOVED <Database> type parameter
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -96,9 +94,13 @@ export async function GET(request: NextRequest) {
       : 0;
     
     // Category performance
+    // FIX: categories is an ARRAY, so we need to access the first element [0]
     const categoryPerformance: Record<string, { total: number; totalScore: number }> = {};
-    attempts.forEach(attempt => {
-      const categoryName = attempt.categories?.name_en || 'Uncategorized';
+    attempts.forEach((attempt: any) => {
+      // Access categories array and get first element
+      const category = Array.isArray(attempt.categories) ? attempt.categories[0] : attempt.categories;
+      const categoryName = category?.name_en || 'Uncategorized';
+      
       if (!categoryPerformance[categoryName]) {
         categoryPerformance[categoryName] = { total: 0, totalScore: 0 };
       }
@@ -114,7 +116,7 @@ export async function GET(request: NextRequest) {
 
     // Activity over time
     const attemptsByDay: Record<string, number> = {};
-    attempts.forEach(attempt => {
+    attempts.forEach((attempt: any) => {
       const date = new Date(attempt.created_at).toISOString().split('T')[0];
       attemptsByDay[date] = (attemptsByDay[date] || 0) + 1;
     });
@@ -123,18 +125,26 @@ export async function GET(request: NextRequest) {
       .map(([date, count]) => ({ date, "Attempts": count }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    // Question stats
+    // Question stats - also fix array access here
     const questionStats = {
       hardest: (questionStatsRes.data || [])
-        .sort((a, b) => (a.correct_percentage || 0) - (b.correct_percentage || 0))
+        .map((stat: any) => ({
+          ...stat,
+          question_text: Array.isArray(stat.questions) ? stat.questions[0]?.question_text_en : stat.questions?.question_text_en
+        }))
+        .sort((a: any, b: any) => (a.correct_percentage || 0) - (b.correct_percentage || 0))
         .slice(0, 5),
       easiest: (questionStatsRes.data || [])
-        .sort((a, b) => (b.correct_percentage || 0) - (a.correct_percentage || 0))
+        .map((stat: any) => ({
+          ...stat,
+          question_text: Array.isArray(stat.questions) ? stat.questions[0]?.question_text_en : stat.questions?.question_text_en
+        }))
+        .sort((a: any, b: any) => (b.correct_percentage || 0) - (a.correct_percentage || 0))
         .slice(0, 5),
     };
 
     // User signup trends
-    const userSignupsByDay = (userSignupsRes.data || []).reduce((acc, u) => {
+    const userSignupsByDay = (userSignupsRes.data || []).reduce((acc: any, u: any) => {
       const date = new Date(u.created_at).toISOString().split('T')[0];
       acc[date] = (acc[date] || 0) + 1;
       return acc;

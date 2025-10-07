@@ -2,16 +2,16 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/supabase'; // Ensure this path is correct for your project
+// REMOVED: import { Database } from '@/types/supabase'; 
 
 // This function is structured correctly to be used in Server Components.
-export const createSupabaseServerClient = () => {
+export const createSupabaseServerClient = async () => {
   
-  // THE FIX: The `cookies()` function from `next/headers` MUST be called
-  // inside this function, not at the top level of the file.
-  const cookieStore = cookies();
+  // FIXED: Added await for Next.js 15 compatibility
+  const cookieStore = await cookies();
 
-  return createServerClient<Database>(
+  // REMOVED <Database> type parameter
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

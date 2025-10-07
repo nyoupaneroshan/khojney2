@@ -17,7 +17,9 @@ export async function generateMetadata(
   { params }: PageProps
 ): Promise<Metadata> {
   const { slug } = await params
-  const supabase = createSupabaseServerClient()
+  
+  // FIX: AWAIT the createSupabaseServerClient function
+  const supabase = await createSupabaseServerClient()
   
   const { data: category } = await supabase
     .from('categories')
@@ -40,7 +42,9 @@ export async function generateMetadata(
 // --- Main Page ---
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = createSupabaseServerClient()
+  
+  // FIX: AWAIT the createSupabaseServerClient function
+  const supabase = await createSupabaseServerClient()
 
   const { data: categoryData, error } = await supabase
     .from('categories')

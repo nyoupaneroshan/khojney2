@@ -81,14 +81,15 @@ const OptionButton = ({ option, state, onClick, index }: { option: Option, state
   );
 };
 
-const shuffleArray = (array: any[]) => {
+const shuffleArray = <T,>(array: T[]): T[] => {
   let currentIndex = array.length, randomIndex;
+  const newArray = [...array];
   while (currentIndex !== 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    [newArray[currentIndex], newArray[randomIndex]] = [newArray[randomIndex], newArray[currentIndex]];
   }
-  return array;
+  return newArray;
 };
 
 // --- MAIN QUIZ CLIENT COMPONENT ---
@@ -109,24 +110,38 @@ export default function QuizPlayClient({ category, initialQuestions, user, quizM
   const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
 
   const selectedMode = useMemo(() => quizModes.find(m => m.id === searchParams.get('mode')) || quizModes[0], [quizModes, searchParams]);
-  const shuffledQuestions = useMemo(() => shuffleArray([...initialQuestions]), [initialQuestions]);
+  const shuffledQuestions = useMemo(() => shuffleArray(initialQuestions), [initialQuestions]);
   const currentQuestion = useMemo(() => shuffledQuestions[currentQuestionIndex], [shuffledQuestions, currentQuestionIndex]);
-  const shuffledOptions = useMemo(() => currentQuestion ? shuffleArray([...currentQuestion.options]) : [], [currentQuestion]);
+  const shuffledOptions = useMemo(() => currentQuestion ? shuffleArray(currentQuestion.options) : [], [currentQuestion]);
 
   const handleFinishQuiz = useCallback(async (finalAnswers: Map<string, string>) => {
     if (!quizAttemptId || isSubmitting) return;
     setIsSubmitting(true);
     let score = 0;
+    
     finalAnswers.forEach((selectedId, questionId) => {
       const question = shuffledQuestions.find(q => q.id === questionId);
-      const correctOption = question?.options.find(o => o.is_correct);
+      // FIX: Explicitly type the parameter 'o' as Option
+      const correctOption = question?.options.find((o: Option) => o.is_correct);
       if (correctOption && selectedId === correctOption.id) score++;
     });
+    
     const timeTakenInSeconds = Math.round((Date.now() - startTime) / 1000);
-    const answersToSave = Array.from(finalAnswers.entries()).map(([question_id, selected_option_id]) => ({ quiz_attempt_id: quizAttemptId, question_id, selected_option_id, is_correct: selected_option_id === shuffledQuestions.find(q => q.id === question_id)?.options.find(o => o.is_correct)?.id }));
+    const answersToSave = Array.from(finalAnswers.entries()).map(([question_id, selected_option_id]) => ({ 
+      quiz_attempt_id: quizAttemptId, 
+      question_id, 
+      selected_option_id, 
+      is_correct: selected_option_id === shuffledQuestions.find(q => q.id === question_id)?.options.find((o: Option) => o.is_correct)?.id 
+    }));
+    
     try {
       if (answersToSave.length > 0) await supabase.from('user_answers').insert(answersToSave);
-      await supabase.from('quiz_attempts').update({ score, status: 'completed', completed_at: new Date().toISOString(), time_taken_seconds: timeTakenInSeconds }).eq('id', quizAttemptId);
+      await supabase.from('quiz_attempts').update({ 
+        score, 
+        status: 'completed', 
+        completed_at: new Date().toISOString(), 
+        time_taken_seconds: timeTakenInSeconds 
+      }).eq('id', quizAttemptId);
       router.push(`/quiz/results/${quizAttemptId}`);
     } catch (error) {
       console.error("Error finishing quiz:", error);
@@ -169,7 +184,13 @@ export default function QuizPlayClient({ category, initialQuestions, user, quizM
     attemptCreatedRef.current = true;
     const createAttempt = async () => {
       const settings = { limit: searchParams.get('limit'), difficulty: searchParams.get('difficulty'), mode: selectedMode?.name_en };
-      const { data, error } = await supabase.from('quiz_attempts').insert({ user_id: user.id, category_id: category.id, status: 'started', quiz_mode_id: selectedMode?.id, settings_snapshot: settings }).select('id').single();
+      const { data, error } = await supabase.from('quiz_attempts').insert({ 
+        user_id: user.id, 
+        category_id: category.id, 
+        status: 'started', 
+        quiz_mode_id: selectedMode?.id, 
+        settings_snapshot: settings 
+      }).select('id').single();
       if (error) console.error("Failed to create quiz attempt:", error);
       else { setQuizAttemptId(data.id); setStartTime(Date.now()); }
     };
@@ -187,7 +208,10 @@ export default function QuizPlayClient({ category, initialQuestions, user, quizM
     return () => clearInterval(timerInterval);
   }, [timeLeft, answerStatus, quizAttemptId, handleNextQuestion]);
 
-  useEffect(() => { window.addEventListener('keydown', handleKeyDown); return () => window.removeEventListener('keydown', handleKeyDown); }, [handleKeyDown]);
+  useEffect(() => { 
+    window.addEventListener('keydown', handleKeyDown); 
+    return () => window.removeEventListener('keydown', handleKeyDown); 
+  }, [handleKeyDown]);
 
   if (!quizAttemptId || !currentQuestion) {
     return (
@@ -198,7 +222,7 @@ export default function QuizPlayClient({ category, initialQuestions, user, quizM
     );
   }
 
-  const correctOptionId = currentQuestion.options.find(o => o.is_correct)!.id;
+  const correctOptionId = currentQuestion.options.find((o: Option) => o.is_correct)!.id;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 bg-slate-900 text-white overflow-hidden">

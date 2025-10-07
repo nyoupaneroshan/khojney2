@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import QuizPlayClient from './quiz-play-client';
-import { Database } from '@/types/supabase';
+// import { Database } from '@/types/supabase';
 import { Question } from './types';
 
 // Type definition for the page props

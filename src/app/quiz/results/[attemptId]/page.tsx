@@ -3,7 +3,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { Database } from '@/types/supabase';
 import type { Metadata } from 'next';
 import ResultsClient from './results-client';
 
@@ -41,7 +40,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'Quiz Result Not Found' };
   }
   
-  const title = `My Quiz Result: ${attempt.score} in ${attempt.categories?.name_en || 'General Knowledge'}!`;
+  // FIX: Simplified approach with type assertion
+  const categories = attempt.categories as any;
+  const categoryName = Array.isArray(categories) 
+    ? categories[0]?.name_en 
+    : categories?.name_en;
+  
+  const title = `My Quiz Result: ${attempt.score} in ${categoryName || 'General Knowledge'}!`;
   const description = 'I took a quiz on Khojney App! Check out my score and try to beat it.';
 
   return { title, description };
@@ -52,7 +57,7 @@ export default async function ResultsPage({ params }: PageProps) {
   const { attemptId } = await params;
   const cookieStore = await cookies();
   
-  const supabase = createServerClient<Database>(
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -93,20 +98,26 @@ export default async function ResultsPage({ params }: PageProps) {
     notFound();
   }
 
-  const totalQuestions = attemptData.user_answers.length;
+  const totalQuestions = attemptData.user_answers?.length || 0;
   const correctAnswers = attemptData.score || 0;
   const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
   const timePerQuestion = totalQuestions > 0 && attemptData.time_taken_seconds
     ? (attemptData.time_taken_seconds / totalQuestions).toFixed(1)
-    : 0;
+    : '0';
+
+  // FIX: Use type assertion to handle categories
+  const categories = attemptData.categories as any;
+  const categoryName = Array.isArray(categories)
+    ? categories[0]?.name_en
+    : categories?.name_en;
 
   const stats = {
       totalQuestions,
       correctAnswers,
       accuracy,
-      timeTaken: attemptData.time_taken_seconds,
+      timeTaken: attemptData.time_taken_seconds || 0,
       timePerQuestion,
-      categoryName: attemptData.categories?.name_en || 'Quiz',
+      categoryName: categoryName || 'Quiz',
       completedAt: attemptData.completed_at,
   };
 
@@ -114,7 +125,7 @@ export default async function ResultsPage({ params }: PageProps) {
     <ResultsClient
       attemptId={attemptId}
       stats={stats}
-      reviews={attemptData.user_answers}
+      reviews={attemptData.user_answers || []}
     />
   );
 }

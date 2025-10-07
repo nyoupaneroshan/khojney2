@@ -8,8 +8,8 @@ import { User } from '@supabase/supabase-js';
 
 // This is the corrected and fully enhanced Server Component.
 export default async function DashboardPage() {
-  // 2. Use the utility to create the Supabase client. This is the fix.
-  const supabase = createSupabaseServerClient();
+  // 2. FIXED: AWAIT the utility to create the Supabase client
+  const supabase = await createSupabaseServerClient();
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
@@ -53,8 +53,23 @@ export default async function DashboardPage() {
       .limit(3),
   ]);
   
-  // --- SERVER-SIDE STATS CALCULATION (UNCHANGED) ---
-  const allAttempts = attemptsResponse.data || [];
+  // --- SERVER-SIDE STATS CALCULATION AND DATA TRANSFORMATION ---
+  // FIX: Transform the attempts data to convert categories array to single object
+  const allAttempts = (attemptsResponse.data || []).map((attempt: any) => ({
+    ...attempt,
+    categories: Array.isArray(attempt.categories) 
+      ? attempt.categories[0] 
+      : attempt.categories
+  }));
+  
+  // FIX: Transform achievements data to convert achievements array to single object
+  const recentAchievements = (achievementsResponse.data || []).map((achievement: any) => ({
+    ...achievement,
+    achievements: Array.isArray(achievement.achievements)
+      ? achievement.achievements[0]
+      : achievement.achievements
+  }));
+  
   const completedAttempts = allAttempts.filter(a => a.status === 'completed');
   const performanceData = performanceResponse.data || [];
 
@@ -74,7 +89,7 @@ export default async function DashboardPage() {
       initialProfile={profileResponse.data}
       initialAttempts={allAttempts}
       categoryPerformance={performanceData}
-      recentAchievements={achievementsResponse.data || []}
+      recentAchievements={recentAchievements}
       overallStats={overallStats}
     />
   );

@@ -3,19 +3,8 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-// In a real Next.js app, you would use these imports.
-// Mocks are used for compatibility in this environment.
-/*
-import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
-import { User } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
 import { ArrowLeft, User as UserIcon, CheckCircle2, AlertTriangle, BarChart3, Award, Hash, Star, ChevronLeft, ChevronRight, Trophy, Flame, Target } from 'lucide-react';
-*/
-import { motion } from 'framer-motion';
-// --- FIX: Corrected icon names to match what's used in the code ---
-import { ArrowLeft, User as UserIcon, CheckCircle2, AlertTriangle, BarChart3, Award, Hash, Star, ChevronLeft, ChevronRight, Trophy, Flame, Target } from 'lucide-react';
-
 
 // --- MOCK DATA & FUNCTIONS ---
 const Link = ({ href, children, ...props }: any) => <a href={href} {...props}>{children}</a>;
@@ -25,7 +14,6 @@ const supabase = { from: (table: string) => ({ update: (data: any) => ({ eq: (c:
 // --- ADJUSTED & ALIGNED TYPE DEFINITIONS ---
 type User = { id: string; email?: string; user_metadata?: { full_name?: string } };
 
-// This Profile type now correctly reflects the `profiles` table from our advanced schema.
 type Profile = {
   id: string;
   full_name: string | null;
@@ -63,7 +51,6 @@ type OverallStats = {
 };
 
 type Filters = { category: string; status: string; };
-
 
 // --- UI Sub-components ---
 
@@ -220,7 +207,6 @@ const QuizHistory = ({ initialAttempts }: { initialAttempts: Attempt[] }) => {
     );
 };
 
-
 // --- Main Dashboard Client Component ---
 
 export default function DashboardClient({
@@ -262,11 +248,12 @@ export default function DashboardClient({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-1 space-y-8">
                 <ProfileCard user={user} initialProfile={initialProfile} />
-                <AchievementsCard recentAchievements={recentAchievements} />
+                {/* FIX: Convert undefined to null */}
+                <AchievementsCard recentAchievements={recentAchievements ?? null} />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2 space-y-8">
-                <PerformanceCard performanceData={categoryPerformance} />
+                <PerformanceCard performanceData={categoryPerformance ?? null} />
                 <QuizHistory initialAttempts={initialAttempts} />
             </motion.div>
         </div>

@@ -4,8 +4,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import CategoryClient from './category-client';
-import { Database } from '@/types/supabase';
-import { Question, Category } from './types'; // We'll create this file next
+// REMOVED: import { Database } from '@/types/supabase';
+import { Question, Category } from './types';
 
 interface PageParams {
   slug: string;
@@ -14,17 +14,33 @@ interface PageParams {
 // This is the new async component that handles all dynamic work
 export default async function CategoryContent({ params }: { params: PageParams }) {
   const { slug } = params;
-  const cookieStore = cookies();
+  
+  // FIX: AWAIT cookies() for Next.js 15
+  const cookieStore = await cookies();
 
-  // FIX: The complete, correct cookie handler for the Supabase client
-  const supabase = createServerClient<Database>(
+  // REMOVED <Database> type parameter
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) { return cookieStore.get(name)?.value; },
-        set(name: string, value: string, options: CookieOptions) { try { cookieStore.set({ name, value, ...options }); } catch (error) {} },
-        remove(name: string, options: CookieOptions) { try { cookieStore.set({ name, value: '', ...options }); } catch (error) {} },
+        get(name: string) { 
+          return cookieStore.get(name)?.value; 
+        },
+        set(name: string, value: string, options: CookieOptions) { 
+          try { 
+            cookieStore.set({ name, value, ...options }); 
+          } catch (error) {
+            // Can be ignored in Server Components
+          } 
+        },
+        remove(name: string, options: CookieOptions) { 
+          try { 
+            cookieStore.set({ name, value: '', ...options }); 
+          } catch (error) {
+            // Can be ignored in Server Components
+          } 
+        },
       },
     }
   );
@@ -43,7 +59,10 @@ export default async function CategoryContent({ params }: { params: PageParams }
     notFound();
   }
   
-  const questions = categoryData.questions.map((q: any) => q.questions).filter(Boolean) as Question[] || [];
+  // FIX: Handle the array structure from Supabase joins
+  const questions = (categoryData.questions || [])
+    .map((qc: any) => qc.questions)
+    .filter(Boolean) as Question[];
   
   const category: Category = {
     id: categoryData.id,
