@@ -175,7 +175,6 @@ const LeaderboardWidget = ({ users }: { users: any[] }) => {
 };
 
 const CategoryChartWidget = ({ data }: { data: CategoryData[] }) => {
-    const COLORS = ['#06b6d4', '#22d3ee', '#67e8f9', '#a5f3fc', '#cffafe'];
     return (
         <div className="col-span-12 lg:col-span-7 bg-gray-800/50 border border-gray-700/80 rounded-xl p-6 h-96">
             <h3 className="font-bold text-white mb-4">Category Performance</h3>
