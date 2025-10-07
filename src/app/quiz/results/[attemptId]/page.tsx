@@ -7,15 +7,18 @@ import { Database } from '@/types/supabase';
 import type { Metadata } from 'next';
 import ResultsClient from './results-client';
 
-// The parameter name is updated here
-interface PageParams {
-  attemptId: string;
+// Updated interface with Promise
+interface PageProps {
+  params: Promise<{
+    attemptId: string;
+  }>;
 }
 
 // DYNAMIC SEO & SOCIAL SHARING METADATA
-// The parameter name is updated here
-export async function generateMetadata({ params }: { params: PageParams }): Promise<Metadata> {
-  const cookieStore = cookies();
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { attemptId } = await params;
+  const cookieStore = await cookies();
+  
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -27,10 +30,12 @@ export async function generateMetadata({ params }: { params: PageParams }): Prom
       },
     }
   );
-  const { data: attempt } = await supabase.from('quiz_attempts')
+  
+  const { data: attempt } = await supabase
+    .from('quiz_attempts')
     .select(`score, categories(name_en)`)
-    // The parameter is now read from params.attemptId
-    .eq('id', params.attemptId).single();
+    .eq('id', attemptId)
+    .single();
     
   if (!attempt) {
     return { title: 'Quiz Result Not Found' };
@@ -43,9 +48,10 @@ export async function generateMetadata({ params }: { params: PageParams }): Prom
 }
 
 // MAIN SERVER COMPONENT
-// The parameter name is updated here
-export default async function ResultsPage({ params }: { params: PageParams }) {
-  const cookieStore = cookies();
+export default async function ResultsPage({ params }: PageProps) {
+  const { attemptId } = await params;
+  const cookieStore = await cookies();
+  
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -57,9 +63,6 @@ export default async function ResultsPage({ params }: { params: PageParams }) {
       },
     }
   );
-
-  // The parameter is now read directly from params.attemptId
-  const { attemptId } = params;
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -82,7 +85,6 @@ export default async function ResultsPage({ params }: { params: PageParams }) {
             )
         )
     `)
-    // The parameter is now read from the `attemptId` const
     .eq('id', attemptId)
     .eq('user_id', user.id)
     .single();
@@ -110,7 +112,6 @@ export default async function ResultsPage({ params }: { params: PageParams }) {
 
   return (
     <ResultsClient
-      // The prop being passed is still named `attemptId`
       attemptId={attemptId}
       stats={stats}
       reviews={attemptData.user_answers}
