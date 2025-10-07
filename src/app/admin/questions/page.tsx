@@ -214,18 +214,36 @@ export default function ManageQuestionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  const fetchPageData = useCallback(async () => {
-    try {
-      const { data: questionsData, error: questionsError } = await supabase.from('questions').select(`id, question_text_en, is_published, created_at, question_categories ( categories ( name_en ) )`).order('created_at', { ascending: false });
-      const { data: categoriesData, error: categoriesError } = await supabase.from('categories').select('id, name_en').order('name_en', { ascending: true });
-      if (questionsError) throw questionsError;
-      if (categoriesError) throw categoriesError;
-      setQuestions(questionsData || []);
-      setAllCategories(categoriesData || []);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  }, []);
+const fetchPageData = useCallback(async () => {
+  try {
+    const { data: questionsData, error: questionsError } = await supabase
+      .from('questions')
+      .select(`id, question_text_en, is_published, created_at, question_categories ( categories ( name_en ) )`)
+      .order('created_at', { ascending: false });
+    
+    const { data: categoriesData, error: categoriesError } = await supabase
+      .from('categories')
+      .select('id, name_en')
+      .order('name_en', { ascending: true });
+    
+    if (questionsError) throw questionsError;
+    if (categoriesError) throw categoriesError;
+    
+    // FIX: Transform questions data to flatten nested categories array
+    const transformedQuestions = (questionsData || []).map((q: any) => ({
+      ...q,
+      question_categories: q.question_categories.map((qc: any) => ({
+        categories: Array.isArray(qc.categories) ? qc.categories[0] : qc.categories
+      }))
+    }));
+    
+    setQuestions(transformedQuestions);
+    setAllCategories(categoriesData || []);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+}, []);
+
 
   useEffect(() => {
     const checkAdminAndFetchData = async () => {

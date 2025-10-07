@@ -1,18 +1,18 @@
-// src/app/page.tsx
+// src/app/home/page.tsx
 
 // 1. Import your new utility function.
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 // Import your client component and types
-import HomeClient from '../home/home-client';
+import HomeClient from './home-client';
 import { Category } from '../types';
 import { Session } from '@supabase/supabase-js'; // Import Session type
 
 // This is our Server Component.
 export default async function Home() {
 
-  // 2. Use the utility to get the pre-configured Supabase client. This is the fix.
-  const supabase = createSupabaseServerClient();
+  // 2. FIXED: AWAIT the utility to get the pre-configured Supabase client
+  const supabase = await createSupabaseServerClient();
 
   // 3. Fetch the user session on the server.
   const { data: { session } } = await supabase.auth.getSession();
