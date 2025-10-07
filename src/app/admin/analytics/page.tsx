@@ -63,7 +63,7 @@ interface AnalyticsData {
 
 interface UserProfile { id: string; full_name: string | null; email: string | null; }
 
-// --- UI SUB-COMPONENTS (Refactored for robust JSX parsing - kept from previous fix) ---
+// --- UI SUB-COMPONENTS (Refactored to use explicit return blocks {} for maximum compatibility) ---
 
 const StatCard = ({ icon, title, value, trend, unit = '' }: { icon: React.ReactNode, title: string, value: string | number, trend: number, unit?: string }) => {
     const isPositive = trend >= 0;
@@ -87,35 +87,47 @@ const StatCard = ({ icon, title, value, trend, unit = '' }: { icon: React.ReactN
     );
 };
 
-const SkeletonLoader = () => (
-    <div className="bg-gray-800/50 border border-gray-700/80 rounded-xl p-6 animate-pulse">
-        <div className="h-4 bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div className="h-10 bg-gray-700 rounded w-1/2"></div>
-        <div className="h-3 bg-gray-700 rounded w-1/4 mt-2"></div>
-    </div>
-);
+// Now using explicit return {} block
+const SkeletonLoader = () => {
+    return (
+        <div className="bg-gray-800/50 border border-gray-700/80 rounded-xl p-6 animate-pulse">
+            <div className="h-4 bg-gray-700 rounded w-1/3 mb-4"></div>
+            <div className="h-10 bg-gray-700 rounded w-1/2"></div>
+            <div className="h-3 bg-gray-700 rounded w-1/4 mt-2"></div>
+        </div>
+    );
+};
 
-const EmptyState = ({ message, icon }: { message: string, icon: React.ReactNode }) => (
-    <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 p-6">
-        {icon}
-        <p className="mt-2 text-sm">{message}</p>
-    </div>
-);
+// Now using explicit return {} block
+const EmptyState = ({ message, icon }: { message: string, icon: React.ReactNode }) => {
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 p-6">
+            {icon}
+            <p className="mt-2 text-sm">{message}</p>
+        </div>
+    );
+};
 
-const AdminLoading = () => (
-    <main className="flex min-h-screen items-center justify-center bg-gray-900">
-        <Loader2 className="h-12 w-12 text-cyan-400 animate-spin" />
-    </main>
-);
+// Now using explicit return {} block
+const AdminLoading = () => {
+    return (
+        <main className="flex min-h-screen items-center justify-center bg-gray-900">
+            <Loader2 className="h-12 w-12 text-cyan-400 animate-spin" />
+        </main>
+    );
+};
 
-const AccessDenied = () => (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 text-center bg-gray-900">
-        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-red-400">Access Denied</h1>
-        <p className="mt-2 text-gray-400">You do not have permission to view this page.</p>
-        <Link href="/" className="text-cyan-400 hover:text-cyan-300 mt-6">Go to Homepage</Link>
-    </main>
-);
+// Now using explicit return {} block
+const AccessDenied = () => {
+    return (
+        <main className="flex min-h-screen flex-col items-center justify-center p-8 text-center bg-gray-900">
+            <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+            <h1 className="text-2xl font-bold text-red-400">Access Denied</h1>
+            <p className="mt-2 text-gray-400">You do not have permission to view this page.</p>
+            <Link href="/" className="text-cyan-400 hover:text-cyan-300 mt-6">Go to Homepage</Link>
+        </main>
+    );
+};
 
 const QuestionStatsWidget = ({ title, questions, icon, colorClass }: { title: string, questions: any[], icon: React.ReactNode, colorClass: string }) => {
     return (
@@ -178,7 +190,7 @@ const CategoryChartWidget = ({ data }: { data: CategoryData[] }) => {
                     <BarChart data={data} layout="vertical" margin={{ top: 5, right: 20, left: 30, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                         <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-                        <YAxis type="category" dataKey="name" width={100} stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                        <YAxis type="category" dataKey="name" width={100} stroke="#9ca9f" fontSize={12} tickLine={false} axisLine={false} />
                         <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #4b5563' }} cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }} />
                         <Legend />
                         <Bar dataKey="avgScore" name="Avg Score">
