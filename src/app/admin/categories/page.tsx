@@ -30,11 +30,11 @@ interface BulkCategory {
     name_ne?: string;
     description_en?: string;
     description_ne?: string;
-    parent_category_name?: string; // Use name for user-friendliness in CSV
+    parent_category_name?: string;
     is_published?: boolean;
 }
 
-// Interface for CategoryRow component props
+// Interface for CategoryRow component props - MUST BE BEFORE COMPONENT
 interface CategoryRowProps {
   category: Category;
   level: number;
@@ -121,7 +121,6 @@ const BulkUploadSection = ({ allCategories, onUploadComplete }: { allCategories:
 
                     if (error) throw new Error(`Error adding category "${cat.name_en}": ${error.message}`);
                     
-                    // Add newly created category to the map so it can be a parent for subsequent rows
                     categoryMap.set(newCatData.name_en.toLowerCase(), newCatData.id);
                     categoriesAdded++;
                 }
@@ -178,7 +177,8 @@ const BulkUploadSection = ({ allCategories, onUploadComplete }: { allCategories:
     );
 };
 
-const CategoryRow: React.FC<CategoryRowProps> = ({ category, level, allCategories, handleEdit, searchTerm, statusFilter }) => {
+// CategoryRow component - Interface defined above
+const CategoryRow = ({ category, level, allCategories, handleEdit, searchTerm, statusFilter }: CategoryRowProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const subCategories = useMemo(() => {
@@ -342,7 +342,6 @@ export default function ManageCategoriesPage() {
             <StatCard icon={<EyeOff size={22} />} title="Drafts" value={stats.drafts} colorClass="bg-yellow-500/20 text-yellow-300" />
           </motion.div>
           
-          {/* NEW: Rendering the bulk upload section */}
           <BulkUploadSection allCategories={categories} onUploadComplete={fetchCategories} />
 
           <div className="flex flex-col md:flex-row gap-4 mb-4">
