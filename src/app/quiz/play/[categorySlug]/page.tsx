@@ -7,15 +7,21 @@ import QuizPlayClient from './quiz-play-client';
 import { Database } from '@/types/supabase';
 import { Question } from './types';
 
+// Type definition for the page props
+interface PageProps {
+  params: Promise<{ categorySlug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
 // This Server Component now fetches questions AND available quiz modes
-export default async function QuizPlayPage({
-  params,
-  searchParams,
-}: {
-  params: { categorySlug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const cookieStore = cookies();
+export default async function QuizPlayPage({ params, searchParams }: PageProps) {
+  // Await both params and searchParams
+  const { categorySlug } = await params;
+  const search = await searchParams;
+  
+  // Await cookies
+  const cookieStore = await cookies();
+  
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -46,7 +52,7 @@ export default async function QuizPlayPage({
           options ( id, question_id, option_text_en, is_correct )
         )
       `)
-      .eq('slug', params.categorySlug)
+      .eq('slug', categorySlug)
       .eq('is_published', true)
       .single(),
     supabase
@@ -60,8 +66,8 @@ export default async function QuizPlayPage({
   }
   
   // 3. Filter questions on the server based on URL params
-  const difficulty = searchParams.difficulty || 'all';
-  const limit = Number(searchParams.limit) || 10;
+  const difficulty = search.difficulty || 'all';
+  const limit = Number(search.limit) || 10;
 
   let questions = categoryRes.data.questions;
   if (difficulty !== 'all') {
