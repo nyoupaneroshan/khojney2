@@ -2,35 +2,44 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import LeaderboardClient from './LeaderboardClient'; // We will create this next
+import LeaderboardClient from './LeaderboardClient';
+
+// Type definition for the page props
+interface PageProps {
+  searchParams: Promise<{ 
+    period?: string; 
+    category?: string; 
+  }>;
+}
 
 // This Server Component fetches all the necessary data based on URL params
-export default async function LeaderboardPage({
-  searchParams,
-}: {
-  searchParams: { period?: string; category?: string };
-}) {
-  const cookieStore = cookies();
-  // const cookieStore = cookies();
-const supabase = createServerClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+export default async function LeaderboardPage({ searchParams }: PageProps) {
+  // Await searchParams
+  const params = await searchParams;
+  
+  // Await cookies
+  const cookieStore = await cookies();
+  
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
       },
-    },
-  }
-);
+    }
+  );
 
   // Determine the current filters from the URL, with defaults
-  const selectedPeriod = searchParams.period || 'all_time';
-  const selectedCategory = searchParams.category || null;
+  const selectedPeriod = params.period || 'all_time';
+  const selectedCategory = params.category || null;
 
   // 1. Fetch the list of categories for the dropdown menu
-  const { data: categories } = await supabase.from('categories').select('id, name_en');
-
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name_en');
 
   // 2. Fetch the main leaderboard data, applying the period and category filters
   let query = supabase
@@ -45,7 +54,9 @@ const supabase = createServerClient(
     query = query.is('category_id', null);
   }
 
-  const { data: users, error } = await query.order('rank', { ascending: true }).limit(100);
+  const { data: users, error } = await query
+    .order('rank', { ascending: true })
+    .limit(100);
 
   // 3. Fetch the currently logged-in user's rank for the current view
   const { data: { session } } = await supabase.auth.getSession();
