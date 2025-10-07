@@ -189,9 +189,7 @@ const CategoryChartWidget = ({ data }: { data: CategoryData[] }) => {
                         <YAxis type="category" dataKey="name" width={100} stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
                         <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #4b5563' }} cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }} />
                         <Legend />
-                        <Bar dataKey="avgScore" name="Avg Score">
-                            {data.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}
-                        </Bar>
+                        <Bar dataKey="avgScore" name="Avg Score" fill="#06b6d4" />
                         <Bar dataKey="quizzes" name="Total Quizzes" fill="#82ca9d" />
                     </BarChart>
                 </ResponsiveContainer>
