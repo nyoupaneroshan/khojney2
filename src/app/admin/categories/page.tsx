@@ -34,6 +34,15 @@ interface BulkCategory {
     is_published?: boolean;
 }
 
+// Interface for CategoryRow component props
+interface CategoryRowProps {
+  category: Category;
+  level: number;
+  allCategories: Category[];
+  handleEdit: (category: Category) => void;
+  searchTerm: string;
+  statusFilter: 'all' | 'published' | 'draft';
+}
 
 // --- MODERN UI SUB-COMPONENTS ---
 const StatCard = ({ icon, title, value, colorClass }: { icon: React.ReactNode, title: string, value: number, colorClass: string }) => (
@@ -221,7 +230,6 @@ const CategoryRow: React.FC<CategoryRowProps> = ({ category, level, allCategorie
     </>
   );
 };
-
 
 // --- MAIN PAGE COMPONENT ---
 export default function ManageCategoriesPage() {
