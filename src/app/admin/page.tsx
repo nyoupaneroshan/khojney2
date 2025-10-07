@@ -1,15 +1,15 @@
 // src/app/admin/page.tsx
 
 import { createServerClient } from '@supabase/ssr';
-
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import AdminClient from './admin-client';
-// import { Database } from '@/types/supabase';
 
 // This is a SERVER COMPONENT that secures the route
 export default async function AdminPage() {
-    const cookieStore = cookies();
+    // AWAIT the cookies() function in Next.js 15
+    const cookieStore = await cookies();
+    
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -25,7 +25,7 @@ export default async function AdminPage() {
   // 1. Check for a logged-in user session
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    redirect('/'); // Or your login page
+    redirect('/');
   }
 
   // 2. Verify the user's role on the server
@@ -36,7 +36,7 @@ export default async function AdminPage() {
     .single();
 
   if (profile?.role !== 'admin') {
-    notFound(); // If not an admin, show a 404 page. Secure and clean.
+    notFound();
   }
 
   // 3. Fetch all dashboard stats in parallel for performance

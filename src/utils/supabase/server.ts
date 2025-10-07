@@ -2,12 +2,13 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { cache } from 'react';
 import { Database } from '@/types/supabase';
 
-// This is the core of the fix: A cached function to create the server client.
-export const createSupabaseServerClient = cache(() => {
-  const cookieStore = cookies();
+// REMOVED cache() - it doesn't work well with async cookies() in Next.js 15
+// Made the function async and await cookies()
+export const createSupabaseServerClient = async () => {
+  const cookieStore = await cookies(); // AWAIT cookies()
+  
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -19,21 +20,26 @@ export const createSupabaseServerClient = cache(() => {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {}
+          } catch (error) {
+            // Can be ignored in Server Components
+          }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options });
-          } catch (error) {}
+          } catch (error) {
+            // Can be ignored in Server Components
+          }
         },
       },
     }
   );
-});
+};
 
-// A cached function to get the user session.
-export const getUser = cache(async () => {
-  const supabase = createSupabaseServerClient();
+// Updated getUser to work with async createSupabaseServerClient
+export const getUser = async () => {
+  const supabase = await createSupabaseServerClient(); // AWAIT the client creation
+  
   try {
     const { data: { user } } = await supabase.auth.getUser();
     return user;
@@ -41,4 +47,4 @@ export const getUser = cache(async () => {
     console.error('Error getting user:', error);
     return null;
   }
-});
+};
