@@ -5,7 +5,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import AdminClient from './admin-client';
-import { Database } from '@/types/supabase';
+// import { Database } from '@/types/supabase';
 
 // This is a SERVER COMPONENT that secures the route
 export default async function AdminPage() {
