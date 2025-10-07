@@ -6,29 +6,15 @@ import CategoryClient from './category-client'
 import { createSupabaseServerClient } from '@/utils/supabase/server'
 
 // --- Type Definitions ---
-interface PageParams {
-  slug: string
-}
-
 interface PageProps {
-  params: PageParams
-}
-
-interface Question {
-  id: string
-  question_text_en: string
-}
-
-interface Category {
-  id: string
-  name_en: string
-  slug: string
-  description_en: string | null
+  params: {
+    slug: string
+  }
 }
 
 // --- Dynamic Metadata ---
 export async function generateMetadata(
-  { params }: PageProps
+  { params }: { params: { slug: string } }
 ): Promise<Metadata> {
   const supabase = createSupabaseServerClient()
   const { data: category } = await supabase
@@ -50,7 +36,7 @@ export async function generateMetadata(
 }
 
 // --- Main Page ---
-export default async function CategoryPage({ params }: PageProps) {
+export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const { slug } = params
   const supabase = createSupabaseServerClient()
 
@@ -71,9 +57,9 @@ export default async function CategoryPage({ params }: PageProps) {
   const questions =
     categoryData.questions
       ?.map((q: any) => q.questions)
-      .filter(Boolean) as Question[] || []
+      .filter(Boolean) || []
 
-  const category: Category = {
+  const category = {
     id: categoryData.id,
     name_en: categoryData.name_en,
     slug: categoryData.slug,
