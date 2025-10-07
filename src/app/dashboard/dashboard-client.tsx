@@ -60,8 +60,8 @@ const DashboardHeader = ({ name }: { name: string }) => (
             <h1 className="text-3xl md:text-4xl font-bold text-white">Welcome back, {name}!</h1>
             <p className="text-lg text-gray-400 mt-1">Let's review your progress and conquer new challenges.</p>
         </div>
-        <Link href="/categories" className="hidden sm:inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
-            <ArrowLeft size={18} /> Back to Categories
+        <Link href="/home" className="hidden sm:inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+            <ArrowLeft size={18} /> Back to Home
         </Link>
     </div>
 );
