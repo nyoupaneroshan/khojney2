@@ -1,1 +1,47 @@
-node_modules/
+--- Build Artifacts and Directories ---
+.next/
+out/
+dist/
+build/
+
+--- Dependency Directories ---
+node_modules
+/venv/
+pycache
+
+--- Environment and Configuration Files ---
+IMPORTANT: Keep sensitive data out of source control!
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+Next.js specific files (ignored by default)
+next-env.d.ts # Generated types
+
+Vercel deployment files
+.vercel
+
+--- Logs, System Files, and Temporary Files ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+.DS_Store
+Thumbs.db
+
+--- Database/Supabase specific files (Local development) ---
+Assuming 'supabase' is your local development directory,
+we ignore generated artifacts inside it, but typically keep
+the main configuration and migrations (like schema.sql).
+If you are using Supabase CLI locally, the following might be useful:
+/supabase/db/
+/supabase/.temp/
+
+--- Python Specifics (for llm_server.py) ---
+*.pyc
+*.pyd
+*.so
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
