@@ -1,4 +1,4 @@
 {
-  "/admin/analytics/page": "app/admin/analytics/page.js",
-  "/admin/page": "app/admin/page.js"
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/admin/analytics/page": "app/admin/analytics/page.js"
 }
