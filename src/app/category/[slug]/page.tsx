@@ -7,20 +7,22 @@ import { createSupabaseServerClient } from '@/utils/supabase/server'
 
 // --- Type Definitions ---
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 // --- Dynamic Metadata ---
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: PageProps
 ): Promise<Metadata> {
+  const { slug } = await params
   const supabase = createSupabaseServerClient()
+  
   const { data: category } = await supabase
     .from('categories')
     .select('name_en, description_en')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single()
 
   if (!category) {
@@ -36,8 +38,8 @@ export async function generateMetadata(
 }
 
 // --- Main Page ---
-export default async function CategoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params
+export default async function CategoryPage({ params }: PageProps) {
+  const { slug } = await params
   const supabase = createSupabaseServerClient()
 
   const { data: categoryData, error } = await supabase
