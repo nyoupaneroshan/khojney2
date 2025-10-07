@@ -44,7 +44,7 @@ export default async function AdminPage() {
     { count: userCount },
     { count: questionCount },
     { count: categoryCount },
-    { data: recentAttempts, error: attemptsError }
+    { data: rawAttempts, error: attemptsError }
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('questions').select('*', { count: 'exact', head: true }),
@@ -58,12 +58,22 @@ export default async function AdminPage() {
     categories: categoryCount ?? 0,
   };
 
-  // 4. Pass the fetched data to the client component for display
+  // 4. Transform the data to match the expected type structure
+  // Supabase returns related fields as arrays, so we extract the first element
+  const recentAttempts = rawAttempts?.map(attempt => ({
+    id: attempt.id,
+    score: attempt.score,
+    created_at: attempt.created_at,
+    profiles: Array.isArray(attempt.profiles) ? attempt.profiles[0] : attempt.profiles,
+    categories: Array.isArray(attempt.categories) ? attempt.categories[0] : attempt.categories,
+  })) || [];
+
+  // 5. Pass the fetched data to the client component for display
   return (
     <AdminClient
       user={session.user}
       stats={stats}
-      recentAttempts={recentAttempts || []}
+      recentAttempts={recentAttempts}
     />
   );
 }
