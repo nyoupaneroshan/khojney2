@@ -1,19 +1,4 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/admin/analytics/route": "app/api/admin/analytics/route.js",
-  "/category/route": "app/category/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/admin/page": "app/admin/page.js",
-  "/admin/categories/page": "app/admin/categories/page.js",
-  "/admin/analytics/page": "app/admin/analytics/page.js",
-  "/category/[slug]/page": "app/category/[slug]/page.js",
-  "/admin/questions/page": "app/admin/questions/page.js",
-  "/admin/users/page": "app/admin/users/page.js",
-  "/leaderboard/page": "app/leaderboard/page.js",
-  "/quiz/play/[categorySlug]/page": "app/quiz/play/[categorySlug]/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/home/page": "app/home/page.js",
-  "/quiz/results/[attemptId]/page": "app/quiz/results/[attemptId]/page.js",
-  "/page": "app/page.js",
-  "/test-junction/page": "app/test-junction/page.js"
+  "/admin/analytics/page": "app/admin/analytics/page.js"
 }

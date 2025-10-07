@@ -38,7 +38,6 @@ interface CategoryData {
     quizzes: number;
 }
 
-// --- FIX #1: Define a specific interface for the category accumulator ---
 interface CategoryPerformance {
     [key: string]: { totalScore: number; count: number };
 }
@@ -65,7 +64,7 @@ interface AnalyticsData {
 
 interface UserProfile { id: string; full_name: string | null; email: string | null; }
 
-// --- UI SUB-COMPONENTS (No changes needed) ---
+// --- UI SUB-COMPONENTS ---
 const StatCard = ({ icon, title, value, trend, unit = '' }: { icon: React.ReactNode, title: string, value: string | number, trend: number, unit?: string }) => { const isPositive = trend >= 0; const trendColor = isPositive ? 'text-green-400' : 'text-red-400'; return ( <div className="bg-gray-800/50 border border-gray-700/80 rounded-xl p-6"> <div className="flex items-start justify-between"> <p className="text-sm font-medium text-gray-400">{title}</p> <div className="text-gray-500">{icon}</div> </div> <div className="flex items-baseline gap-2"> <p className="text-4xl font-bold text-white mt-2">{value}{unit}</p> <div className={`flex items-center text-sm font-semibold ${trendColor}`}> {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />} <span>{Math.abs(trend).toFixed(1)}%</span> </div> </div> <p className="text-xs text-gray-500 mt-1">vs. previous period</p> </div> ); };
 const SkeletonLoader = () => ( <div className="bg-gray-800/50 border border-gray-700/80 rounded-xl p-6 animate-pulse"> <div className="h-4 bg-gray-700 rounded w-1/3 mb-4"></div> <div className="h-10 bg-gray-700 rounded w-1/2"></div> <div className="h-3 bg-gray-700 rounded w-1/4 mt-2"></div> </div> );
 const EmptyState = ({ message, icon }: { message: string, icon: React.ReactNode }) => ( <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 p-6"> {icon} <p className="mt-2 text-sm">{message}</p> </div> );
@@ -165,14 +164,13 @@ const fetchAnalyticsData = useCallback(async (userId: string, currentRange: Date
       const avgScore = totalQuizzes > 0 ? (totalScore / totalQuizzes) : 0;
       const totalUsers = mainPeriodData.signups.length;
       
-      // --- FIX #2: Use the new CategoryPerformance interface to strongly type the accumulator ---
       const categoryPerformance = mainPeriodData.attempts.reduce((acc: CategoryPerformance, a: any) => { 
           const catName = a.categories?.name_en || 'General'; 
           if (!acc[catName]) acc[catName] = { totalScore: 0, count: 0 }; 
           acc[catName].totalScore += a.score || 0; 
           acc[catName].count += 1; 
           return acc; 
-      }, {} as CategoryPerformance); // Asserting the initial value's type is also important
+      }, {} as CategoryPerformance);
 
       const categoryChartData = Object.entries(categoryPerformance).map(([name, data]) => ({ name, avgScore: parseFloat((data.totalScore / data.count || 0).toFixed(1)), quizzes: data.count })).sort((a,b) => b.quizzes - a.quizzes);
 
@@ -216,7 +214,7 @@ const fetchAnalyticsData = useCallback(async (userId: string, currentRange: Date
       setIsFiltering(false);
       setInitialLoading(false);
   }
-}, [selectedUser, date]);
+}, []); // Removed dependencies as they are handled by handleFilterChange
 
   useEffect(() => { 
     const initializePage = async () => {
@@ -228,7 +226,13 @@ const fetchAnalyticsData = useCallback(async (userId: string, currentRange: Date
             setIsAuthorized(true);
             const { data: usersData } = await supabase.from('profiles').select('id, full_name, email').order('full_name');
             setUsers(usersData || []);
-            fetchAnalyticsData(selectedUser, date);
+            // Use local state for initial fetch
+            const initialUserId = searchParams.get('userId') || 'all';
+            const initialDate = {
+              from: searchParams.get('from') ? new Date(searchParams.get('from')!) : subDays(new Date(), 30),
+              to: searchParams.get('to') ? new Date(searchParams.get('to')!) : new Date(),
+            };
+            fetchAnalyticsData(initialUserId, initialDate);
           } else {
             setIsAuthorized(false);
             setInitialLoading(false);
@@ -285,6 +289,21 @@ const fetchAnalyticsData = useCallback(async (userId: string, currentRange: Date
 
   if (initialLoading) return <AdminLoading />;
   if (!isAuthorized) return <AccessDenied />;
+  
+  // --- FIX #1: ADD DATA MERGING LOGIC HERE ---
+  let combinedChartData: { date: string; quizzes: number; "New Users": number; }[] = [];
+  if (data && !isFiltering) {
+      const activityMap = new Map(data.activityChartData.map(item => [item.date, item.quizzes]));
+      const signupsMap = new Map(data.userSignupChartData.map(item => [item.date, item['New Users']]));
+      const allDates = [...new Set([...activityMap.keys(), ...signupsMap.keys()])];
+      allDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+      combinedChartData = allDates.map(date => ({
+          date,
+          quizzes: activityMap.get(date) || 0,
+          "New Users": signupsMap.get(date) || 0,
+      }));
+  }
 
   return (
     <main className="min-h-screen w-full p-4 sm:p-8 bg-gray-900 text-white">
@@ -327,7 +346,22 @@ const fetchAnalyticsData = useCallback(async (userId: string, currentRange: Date
                 </div>
                 
                 <div className="grid grid-cols-12 gap-6">
-                    <div className="col-span-12 bg-gray-800/50 border border-gray-700/80 rounded-xl p-6 h-96"><h3 className="font-bold text-white mb-4">Daily Activity (Quizzes vs. New Users)</h3><ResponsiveContainer width="100%" height="90%"><LineChart margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} /><XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} /><YAxis yAxisId="left" stroke="#22d3ee" fontSize={12} tickLine={false} axisLine={false} label={{ value: 'Quizzes', angle: -90, position: 'insideLeft', fill: '#22d3ee', style: {textAnchor: 'middle'} }} /><YAxis yAxisId="right" orientation="right" stroke="#82ca9d" fontSize={12} tickLine={false} axisLine={false} label={{ value: 'New Users', angle: -90, position: 'insideRight', fill: '#82ca9d', style: {textAnchor: 'middle'} }} /><Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #4b5563' }} /><Legend /><Line yAxisId="left" type="monotone" dataKey="quizzes" name="Quizzes" data={data.activityChartData} stroke="#22d3ee" strokeWidth={2} dot={false} /><Line yAxisId="right" type="monotone" dataKey="New Users" name="New Users" data={data.userSignupChartData} stroke="#82ca9d" strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
+                    {/* --- FIX #2: UPDATE THE LINECHART JSX --- */}
+                    <div className="col-span-12 bg-gray-800/50 border border-gray-700/80 rounded-xl p-6 h-96">
+                        <h3 className="font-bold text-white mb-4">Daily Activity (Quizzes vs. New Users)</h3>
+                        <ResponsiveContainer width="100%" height="90%">
+                            <LineChart data={combinedChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                                <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis yAxisId="left" stroke="#22d3ee" fontSize={12} tickLine={false} axisLine={false} label={{ value: 'Quizzes', angle: -90, position: 'insideLeft', fill: '#22d3ee', style: {textAnchor: 'middle'} }} />
+                                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" fontSize={12} tickLine={false} axisLine={false} label={{ value: 'New Users', angle: -90, position: 'insideRight', fill: '#82ca9d', style: {textAnchor: 'middle'} }} />
+                                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #4b5563' }} />
+                                <Legend />
+                                <Line yAxisId="left" type="monotone" dataKey="quizzes" name="Quizzes" stroke="#22d3ee" strokeWidth={2} dot={false} />
+                                <Line yAxisId="right" type="monotone" dataKey="New Users" name="New Users" stroke="#82ca9d" strokeWidth={2} dot={false} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                     
                     <CategoryChartWidget data={data.categoryChartData} />
                     <div className="col-span-12 lg:col-span-5"><LeaderboardWidget users={data.leaderboardData} /></div>

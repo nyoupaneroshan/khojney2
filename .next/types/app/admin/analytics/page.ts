@@ -1,4 +1,4 @@
-// File: /Users/nyoupane/Documents/11TechMedia/QuizApp/khojney/khojney_main/khojney-app/new_khojney/khojney-main/src/app/admin/analytics/page.tsx
+// File: /Users/nyoupane/Documents/11TechMedia/Self/khojney2/src/app/admin/analytics/page.tsx
 import * as entry from '../../../../../src/app/admin/analytics/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
