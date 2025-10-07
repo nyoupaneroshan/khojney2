@@ -1,10 +1,11 @@
 'use client';
+// simple update here
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 // CORRECT: Using the actual Supabase client import from your project
 import { supabase } from '@/lib/supabaseClient'; 
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { format, subDays, differenceInDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
