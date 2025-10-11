@@ -5,7 +5,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
-
+  // ✅ INDUSTRY STANDARD SECURITY HEADERS (CORRECTED)
   async headers() {
     return [
       {
@@ -50,10 +50,10 @@ const nextConfig = {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
           },
-          // Control browser features and APIs
+          // Control browser features and APIs (FIXED - removed interest-cohort)
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()'
           },
           // Force HTTPS connections (2 years)
           {
